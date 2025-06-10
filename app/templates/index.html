@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<a href="{{ url_for('main.add_resource_form') }}" class="btn btn-success mb-3">Añadir Nuevo Recurso</a>
+
+<!-- Mensajes flash -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<h2>Mis Recursos</h2>
+
+<div class="list-group">
+    {% for recurso in recursos %}
+    <div class="list-group-item">
+        <h5>{{ recurso.titulo }}</h5>
+        <p>{{ recurso.descripcion }}</p>
+        <small class="text-muted">Creado: {{ recurso.fecha_creacion }}</small>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No hay recursos aún</div>
+    {% endfor %}
+</div>
+{% endblock %}

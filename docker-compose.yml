@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Cambiar de ./app:/app a .:/app para montar la raíz del proyecto
+      - .:/app
+      - ./uploads:/app/uploads  # Para archivos subidos
+    environment:
+      - MONGO_URI=mongodb://db:27017/knowledgehub # Corregido para usar el nombre del servicio 'db'
+    depends_on:
+      - db
+
+  db:
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - db_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=knowledgehub
+
+volumes:
+  db_data:

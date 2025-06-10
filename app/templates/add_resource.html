@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h2 class="card-title">Añadir Nuevo Recurso</h2>
+        <form method="POST" action="{{ url_for('main.add_resource') }}" enctype="multipart/form-data">
+            <!-- Campo para el tipo de recurso -->
+            <div class="mb-3">
+                <label for="tipo" class="form-label">Tipo de Recurso</label>
+                <select class="form-select" id="tipo" name="tipo" required onchange="mostrarCamposEspecificos()">
+                    <option value="" disabled selected>Selecciona un tipo</option>
+                    <option value="enlace">Enlace Web</option>
+                    <option value="nota">Nota</option>
+                    <option value="documento">Documento</option>
+                </select>
+            </div>
+
+            <!-- Campos comunes a todos los tipos -->
+            <div class="mb-3">
+                <label for="titulo" class="form-label">Título</label>
+                <input type="text" class="form-control" id="titulo" name="titulo" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="descripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="etiquetas" class="form-label">Etiquetas (separadas por comas)</label>
+                <input type="text" class="form-control" id="etiquetas" name="etiquetas">
+            </div>
+
+            <!-- Campos específicos por tipo (inicialmente ocultos) -->
+            
+            <!-- Para enlace web -->
+            <div id="enlace_fields" style="display: none;">
+                <div class="mb-3">
+                    <label for="url" class="form-label">URL</label>
+                    <input type="url" class="form-control" id="url" name="url">
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="descargar" name="descargar">
+                    <label class="form-check-label" for="descargar">Descargar contenido para búsqueda offline</label>
+                </div>
+            </div>
+
+            <!-- Para nota -->
+            <div id="nota_fields" style="display: none;">
+                <div class="mb-3">
+                    <label for="contenido" class="form-label">Contenido</label>
+                    <textarea class="form-control" id="contenido" name="contenido" rows="5"></textarea>
+                </div>
+            </div>
+
+            <!-- Para documento -->
+            <div id="documento_fields" style="display: none;">
+                <div class="mb-3">
+                    <label for="archivo" class="form-label">Subir archivo</label>
+                    <input class="form-control" type="file" id="archivo" name="archivo">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function mostrarCamposEspecificos() {
+    // Ocultar todos los campos específicos
+    document.getElementById('enlace_fields').style.display = 'none';
+    document.getElementById('nota_fields').style.display = 'none';
+    document.getElementById('documento_fields').style.display = 'none';
+    
+    // Mostrar los campos del tipo seleccionado
+    const tipo = document.getElementById('tipo').value;
+    if (tipo) {
+        document.getElementById(tipo + '_fields').style.display = 'block';
+    }
+}
+</script>
+{% endblock %}
