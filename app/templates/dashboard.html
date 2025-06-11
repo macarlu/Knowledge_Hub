@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="bg-gray-100 font-sans">
+    <div class="p-6 max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-4">📊 Dashboard</h1>
+
+        <!-- Formulario para añadir evento -->
+        <div class="bg-white p-4 rounded-2xl shadow mb-4">
+            <h2 class="text-xl font-semibold mb-2">➕ Añadir Evento al Calendario</h2>
+            <form method="POST" action="{{ url_for('main.add_event') }}" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="title" class="form-control" placeholder="Título del evento" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" name="date" class="form-control" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Añadir</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Panel de 4 columnas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+
+            <!-- Calendario -->
+            <div class="bg-white p-4 rounded-2xl shadow">
+                <h2 class="text-xl font-semibold mb-2">📅 Calendario</h2>
+                <div id='calendar'></div>
+            </div>
+
+            <!-- Notas Rápidas -->
+            <div class="bg-white p-4 rounded-2xl shadow">
+                <h2 class="text-xl font-semibold mb-2">🗒️ Notas Rápidas</h2>
+                <ul class="space-y-2">
+                    {% for note in notes %}
+                        <li class="p-2 bg-yellow-100 rounded-xl">
+                            <strong>{{ note.title or note.titulo }}</strong><br>
+                            <small>{{ note.date or note.fecha_creacion }}</small><br>
+                            {{ note.content or note.descripcion }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Documentos Importantes -->
+            <div class="bg-white p-4 rounded-2xl shadow">
+                <h2 class="text-xl font-semibold mb-2">📁 Documentos Importantes</h2>
+                <ul class="list-disc ml-4">
+                    {% for doc in documents %}
+                        <li>
+                            <a href="{{ url_for('main.uploaded_file', filename=doc.ruta_archivo) }}" class="text-blue-600 underline" target="_blank">
+                                {{ doc.titulo or doc.title or doc.ruta_archivo }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Enlaces recientes -->
+            <div class="bg-white p-4 rounded-2xl shadow">
+                <h2 class="text-xl font-semibold mb-2">🔗 Enlaces Recientes</h2>
+                <ul class="list-disc ml-4">
+                    {% for link in links %}
+                        <li><a href="{{ link.url }}" target="_blank" class="text-blue-600 underline">{{ link.title or link.titulo }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                events: {{ calendar_events|safe }}
+            });
+            calendar.render();
+        });
+    </script>
+</main>
+{% endblock %}
+
+

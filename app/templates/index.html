@@ -1,52 +1,57 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Mis Recursos</h2>
-    <div class="d-flex gap-2">
-        <span class="badge bg-primary">
-            <i class="fas fa-link me-1"></i> {{ estadisticas.enlaces }} Enlaces
-        </span>
-        <span class="badge bg-info">
-            <i class="fas fa-sticky-note me-1"></i> {{ estadisticas.notas }} Notas
-        </span>
-        <span class="badge bg-success">
-            <i class="fas fa-file me-1"></i> {{ estadisticas.documentos }} Documentos
-        </span>
-    </div>
-</div>
-
-<a href="{{ url_for('main.add_resource_form') }}" class="btn btn-success mb-3">
-    <i class="fas fa-plus me-1"></i> Añadir Nuevo Recurso
-</a>
-
-{% if recursos %}
-<div class="list-group">
+<h2 class="mb-4">Archivador de Recursos por Etiquetas</h2>
+<div class="accordion" id="archivadorRecursos">
+    {% set etiquetas = [] %}
     {% for recurso in recursos %}
-    <a href="#" class="list-group-item list-group-item-action">
-        <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{ recurso.titulo }}</h5>
-            <small>
-                <span class="badge bg-primary">{{ recurso.tipo }}</span>
-                {% if recurso.favorito %}
-                <span class="badge bg-warning"><i class="fas fa-star"></i></span>
+        {% for etiqueta in recurso.etiquetas %}
+            {% if etiqueta not in etiquetas %}
+                {% set _ = etiquetas.append(etiqueta) %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    {% for etiqueta in etiquetas %}
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading-{{ loop.index }}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ loop.index }}" aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
+                <span class="badge bg-secondary me-2">{{ etiqueta }}</span> Recursos con esta etiqueta
+            </button>
+        </h2>
+        <div id="collapse-{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#archivadorRecursos">
+            <div class="accordion-body">
+                {% set recursos_etiqueta = recursos | selectattr('etiquetas', 'contains', etiqueta) | list %}
+                {% if recursos_etiqueta %}
+                <ul class="list-group">
+                    {% for recurso in recursos_etiqueta %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ recurso.titulo }}</strong>
+                            <br>
+                            <small class="text-muted">{{ recurso.tipo|capitalize }} | Creado: {{ recurso.fecha_creacion.strftime('%d/%m/%Y') }}</small>
+                            <br>
+                            {{ recurso.descripcion|truncate(80) }}
+                            {% if recurso.tipo == 'documento' and recurso.ruta_archivo %}
+                                <a href="{{ url_for('main.uploaded_file', filename=recurso.ruta_archivo) }}" class="btn btn-sm btn-outline-secondary ms-2" target="_blank">
+                                    <i class="fas fa-download"></i> Descargar
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="btn-group">
+                            <a href="{{ url_for('main.edit_resource', resource_id=recurso._id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                            <form method="POST" action="{{ url_for('main.delete_resource', resource_id=recurso._id) }}" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este recurso?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger ms-1"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="alert alert-info mt-2">No hay recursos en esta etiqueta.</div>
                 {% endif %}
-            </small>
+            </div>
         </div>
-        <p class="mb-1">{{ recurso.descripcion|truncate(100) }}</p>
-        <div>
-            {% for etiqueta in recurso.etiquetas %}
-            <span class="badge bg-secondary">{{ etiqueta }}</span>
-            {% endfor %}
-            <small class="text-muted">Creado: {{ recurso.fecha_creacion.strftime('%d/%m/%Y') }}</small>
-        </div>
-    </a>
+    </div>
     {% endfor %}
 </div>
-{% else %}
-<div class="alert alert-info">
-    <i class="fas fa-info-circle me-2"></i> No hay recursos almacenados. 
-    <a href="{{ url_for('main.add_resource_form') }}" class="alert-link">¡Añade tu primer recurso!</a>
-</div>
-{% endif %}
 {% endblock %}
