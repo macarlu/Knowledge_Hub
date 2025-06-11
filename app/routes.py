@@ -4,6 +4,7 @@ from . import mongo
 import os
 from werkzeug.utils import secure_filename
 from .utils import descargar_web  # Lo implementaremos después
+from flask import current_app
 
 main = Blueprint('main', __name__)
 
