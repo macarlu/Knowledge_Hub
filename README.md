@@ -86,8 +86,6 @@ javascript
   "fecha_creacion": DateTime,
   "para_revisar": Boolean
 }
-📂 Estructura de archivos
-text
 knowledgehub/
 ├── Dockerfile
 ├── docker-compose.yml
