@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Resultados de búsqueda para: "{{ query }}"</h2>
+
+{% if recursos %}
+    <div class="list-group mt-4">
+        {% for recurso in recursos %}
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ recurso.titulo }}</h5>
+                <small>
+                    <span class="badge bg-primary">{{ recurso.tipo }}</span>
+                </small>
+            </div>
+            <p class="mb-1">{{ recurso.descripcion|truncate(150) }}</p>
+            <div>
+                {% for etiqueta in recurso.etiquetas %}
+                <span class="badge bg-secondary">{{ etiqueta }}</span>
+                {% endfor %}
+                <small class="text-muted">Creado: {{ recurso.fecha_creacion.strftime('%d/%m/%Y') }}</small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-warning mt-4">
+        No se encontraron recursos para "{{ query }}"
+    </div>
+{% endif %}
+
+<!-- En la sección de etiquetas -->
+{% for etiqueta in recurso.etiquetas %}
+<a href="{{ url_for('main.search') }}?q={{ etiqueta }}" class="badge bg-secondary">
+    {{ etiqueta }}
+</a>
+{% endfor %}
+
+<a href="{{ url_for('main.index') }}" class="btn btn-outline-primary mt-3">Volver al inicio</a>
+{% endblock %}

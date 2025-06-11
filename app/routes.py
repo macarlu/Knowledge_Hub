@@ -5,13 +5,23 @@ import os
 from werkzeug.utils import secure_filename
 from .utils import descargar_web  # Lo implementaremos después
 from flask import current_app
+import re
 
 main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    recursos = list(mongo.db.recursos.find().limit(10))
-    return render_template('index.html', recursos=recursos)
+    # Obtener estadísticas de tipos de recursos
+    estadisticas = {
+        'enlaces': mongo.db.recursos.count_documents({'tipo': 'enlace'}),
+        'notas': mongo.db.recursos.count_documents({'tipo': 'nota'}),
+        'documentos': mongo.db.recursos.count_documents({'tipo': 'documento'})
+    }
+    
+    # Obtener últimos 10 recursos
+    recursos = list(mongo.db.recursos.find().sort('fecha_creacion', -1).limit(10))
+    
+    return render_template('index.html', recursos=recursos, estadisticas=estadisticas)
 
 @main.route('/add', methods=['GET'])
 def add_resource_form():
@@ -56,3 +66,35 @@ def add_resource():
     
     flash('Recurso añadido correctamente!', 'success')
     return redirect(url_for('main.index'))
+
+@main.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('q', '').strip()
+    
+    if not query:
+        return redirect(url_for('main.index'))
+    
+    # En la ruta de búsqueda
+tipos = mongo.db.recursos.distinct('tipo')
+etiquetas_populares = mongo.db.recursos.aggregate([
+    {'$unwind': '$etiquetas'},
+    {'$group': {'_id': '$etiquetas', 'count': {'$sum': 1}}},
+    {'$sort': {'count': -1}},
+    {'$limit': 10}
+])
+    
+    # Crear una expresión regular para búsqueda insensible a mayúsculas/minúsculas
+    regex = re.compile(f'.*{re.escape(query)}.*', re.IGNORECASE)
+    
+    # Buscar en múltiples campos
+    filtro = {
+        '$or': [
+            {'titulo': {'$regex': regex}},
+            {'descripcion': {'$regex': regex}},
+            {'contenido': {'$regex': regex}},
+            {'etiquetas': {'$regex': regex}}
+        ]
+    }
+    
+    recursos = list(mongo.db.recursos.find(filtro))
+    return render_template('search_results.html', recursos=recursos, query=query)
