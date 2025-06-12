@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% block content %}
 <main class="bg-gray-100 font-sans">
     <div class="p-6 max-w-7xl mx-auto">
@@ -32,9 +31,9 @@
                 <ul class="space-y-2">
                     {% for note in notes %}
                         <li class="p-2 bg-yellow-100 rounded-xl">
-                            <strong>{{ note.title or note.titulo }}</strong><br>
-                            <small>{{ note.date or note.fecha_creacion }}</small><br>
-                            {{ note.content or note.descripcion }}
+                            <strong>{{ note.titulo }}</strong><br>
+                            <small>{{ note.fecha_creacion.strftime('%Y-%m-%d %H:%M') if note.fecha_creacion else '' }}</small><br>
+                            {{ note.descripcion or note.contenido }}
                         </li>
                     {% endfor %}
                 </ul>
@@ -47,7 +46,7 @@
                     {% for doc in documents %}
                         <li>
                             <a href="{{ url_for('main.uploaded_file', filename=doc.ruta_archivo) }}" class="text-blue-600 underline" target="_blank">
-                                {{ doc.titulo or doc.title or doc.ruta_archivo }}
+                                {{ doc.titulo or doc.ruta_archivo }}
                             </a>
                         </li>
                     {% endfor %}
@@ -59,7 +58,7 @@
                 <h2 class="text-xl font-semibold mb-2">🔗 Enlaces Recientes</h2>
                 <ul class="list-disc ml-4">
                     {% for link in links %}
-                        <li><a href="{{ link.url }}" target="_blank" class="text-blue-600 underline">{{ link.title or link.titulo }}</a></li>
+                        <li><a href="{{ link.url }}" target="_blank" class="text-blue-600 underline">{{ link.titulo or link.url }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -80,5 +79,3 @@
     </script>
 </main>
 {% endblock %}
-
-
