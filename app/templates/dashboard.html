@@ -8,16 +8,12 @@
         <!-- Formulario para añadir evento -->
         <div class="bg-white p-4 rounded-2xl shadow mb-4">
             <h2 class="text-xl font-semibold mb-2">➕ Añadir Evento al Calendario</h2>
-            <form method="POST" action="{{ url_for('main.add_event') }}" class="row g-3">
-                <div class="col-md-6">
-                    <input type="text" name="title" class="form-control" placeholder="Título del evento" required>
-                </div>
-                <div class="col-md-4">
-                    <input type="date" name="date" class="form-control" required>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Añadir</button>
-                </div>
+            <form method="POST" action="{{ url_for('main.add_evento') }}">
+              <input type="text" name="titulo" placeholder="Título del evento" required>
+              <input type="date" name="fecha" required>
+              <input type="time" name="hora" required>
+              <input type="text" name="descripcion" placeholder="Descripción">
+              <button type="submit">Guardar</button>
             </form>
         </div>
 

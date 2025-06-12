@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Calendario de Eventos</h2>
+    <div id="calendar"></div>
+</div>
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Añadir Nuevo Evento</h5>
+        <form id="eventoForm">
+            <div class="mb-3">
+                <label class="form-label">Título</label>
+                <input type="text" class="form-control" id="titulo" required>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Fecha y Hora Inicio</label>
+                    <input type="datetime-local" class="form-control" id="fecha_inicio" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Fecha y Hora Fin (opcional)</label>
+                    <input type="datetime-local" class="form-control" id="fecha_fin">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" id="descripcion" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Color</label>
+                <input type="color" class="form-control form-control-color" id="color" value="#3788d8">
+            </div>
+            <button type="submit" class="btn btn-primary">Añadir Evento</button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Manejar envío de nuevo evento
+document.getElementById('eventoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const nuevoEvento = {
+        titulo: document.getElementById('titulo').value,
+        fecha_inicio: document.getElementById('fecha_inicio').value,
+        fecha_fin: document.getElementById('fecha_fin').value,
+        descripcion: document.getElementById('descripcion').value,
+        color: document.getElementById('color').value
+    };
+    
+    fetch('/add_evento', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(nuevoEvento)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Añadir evento al calendario
+            calendar.addEvent({
+                id: data.id,
+                title: nuevoEvento.titulo,
+                start: nuevoEvento.fecha_inicio,
+                end: nuevoEvento.fecha_fin,
+                description: nuevoEvento.descripcion,
+                color: nuevoEvento.color
+            });
+            
+            // Resetear formulario
+            document.getElementById('eventoForm').reset();
+        }
+    });
+});
+</script>
+{% endblock %}

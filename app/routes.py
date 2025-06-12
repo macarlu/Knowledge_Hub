@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from datetime import datetime
 from . import mongo
 import os
@@ -8,6 +8,7 @@ from flask import current_app
 import re
 from bson import ObjectId
 from flask import send_from_directory
+
 
 main = Blueprint('main', __name__)
 
@@ -28,11 +29,13 @@ def index():
     # Leer eventos de la colección 'eventos'
     eventos = list(mongo.db.eventos.find())
     calendar_events = [
-        {
-            "title": event["title"],
-            "start": event["date"].isoformat() if hasattr(event["date"], 'isoformat') else str(event["date"])
-        } for event in eventos
-    ]
+    {
+        "title": event["titulo"],
+        "start": event["fecha_inicio"].isoformat() if hasattr(event["fecha_inicio"], 'isoformat') else str(event["fecha_inicio"]),
+        # Si quieres usar fecha_fin para eventos de rango:
+        "end": event["fecha_fin"].isoformat() if "fecha_fin" in event and hasattr(event["fecha_fin"], 'isoformat') else None
+    } for event in eventos
+]
     # Ejemplo: cada nota se muestra como evento en el calendario
     calendar_events += [
         {
@@ -176,23 +179,52 @@ def delete_resource(resource_id):
 def uploaded_file(filename):
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
 
-@main.route('/add_event', methods=['POST'])
-def add_event():
-    title = request.form.get('title')
-    date = request.form.get('date')
-    print(f"DEBUG EVENT: title={title}, date={date}")  # <-- Esto imprime en consola
-    # Convertir a formato ISO completo (YYYY-MM-DDT00:00:00)
-    if date and len(date) == 10:
-        date = date + 'T00:00:00'
+@main.route('/add_evento', methods=['POST'])
+def add_evento():
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+
+    print(data)  # Para depuración
+
+    titulo = data.get('titulo')
+    fecha = data.get('fecha')  # '2025-06-12'
+    hora = data.get('hora')    # '11:07'
+    fecha_inicio = f"{fecha}T{hora}"
+
+    if not titulo or not fecha_inicio:
+        return jsonify({"error": "Faltan campos obligatorios"}), 400
+
     try:
-        date_obj = datetime.fromisoformat(date) if date else datetime.utcnow()
+        evento = {
+            "titulo": titulo,
+            "fecha_inicio": datetime.fromisoformat(fecha_inicio),
+            "descripcion": data.get('descripcion', ''),
+            "color": data.get('color', '#3788d8')
+        }
+        if data.get('fecha_fin'):
+            evento["fecha_fin"] = datetime.fromisoformat(data['fecha_fin'])
     except Exception as e:
-        print(f"ERROR PARSING DATE: {e}")
-        date_obj = datetime.utcnow()
-    result = mongo.db.eventos.insert_one({
-        'title': title,
-        'date': date_obj
-    })
-    print(f"DEBUG EVENT INSERTED: {result.inserted_id}")
-    flash('Evento añadido correctamente.', 'success')
-    return redirect(url_for('main.index'))
+        return jsonify({"error": f"Formato de fecha inválido: {str(e)}"}), 400
+
+    result = mongo.db.eventos.insert_one(evento)
+    return jsonify({"success": True, "id": str(result.inserted_id)})
+    
+@main.route('/eventos')
+def get_eventos():
+    eventos = list(mongo.db.eventos.find({}))
+    
+    # Convertir ObjectId y fechas a formato serializable
+    eventos_json = []
+    for evento in eventos:
+        evento['_id'] = str(evento['_id'])
+        evento['fecha_inicio'] = evento['fecha_inicio'].isoformat()
+        evento['fecha_fin'] = evento['fecha_fin'].isoformat() if 'fecha_fin' in evento else None
+        eventos_json.append(evento)
+    
+    return jsonify(eventos_json)
+
+@main.route('/calendario')
+def calendario():
+    return render_template('calendario.html')
