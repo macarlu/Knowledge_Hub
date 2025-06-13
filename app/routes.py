@@ -188,74 +188,27 @@ def add_evento():
         data = request.form
 
     titulo = data.get('titulo')
-    fecha = data.get('fecha')  # '2025-06-12'
-    hora = data.get('hora')    # '11:07'
+    fecha = data.get('fecha')
+    hora = data.get('hora')
 
     if not titulo or not fecha or not hora:
         return jsonify({"error": "Faltan campos obligatorios"}), 400
 
     try:
-        # Parseo estricto a local datetime
         fecha_inicio = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
         evento = {
             "titulo": titulo,
             "fecha_inicio": fecha_inicio,
             "descripcion": data.get('descripcion', ''),
             "color": data.get('color', '#3788d8')
-            }
+        }
         if data.get('fecha_fin'):
             evento["fecha_fin"] = datetime.strptime(data['fecha_fin'], "%Y-%m-%dT%H:%M")
+        mongo.db.eventos.insert_one(evento)
+        return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({"error": f"Formato de fecha inválido: {str(e)}"}), 400
-    
-    calendar_events = []
-    
-    # Eventos principales
-    eventos = list(mongo.db.eventos.find())
-    for event in eventos:
-        ev = {
-            "title": event.get("titulo", event.get("title", "Evento")),
-            "start": event.get("fecha_inicio", ""),
-            "color": "#ffe6f0",  # Rosa suave
-            "descripcion": event.get("descripcion", "")
-        }
-        if hasattr(ev["start"], 'isoformat'):
-            ev["start"] = ev["start"].isoformat()
-        if "fecha_fin" in event and event["fecha_fin"]:
-            ev["end"] = event["fecha_fin"]
-            if hasattr(ev["end"], 'isoformat'):
-                ev["end"] = ev["end"].isoformat()
-        calendar_events.append(ev)
 
-    # Notas rápidas
-    for note in locals().get('notes', []):
-        start = note.get("fecha_creacion", "")
-        if hasattr(start, 'isoformat'):
-            start = start.isoformat()
-        calendar_events.append({
-            "title": note.get("titulo", note.get("title", "Nota")),
-            "start": start,
-            "color": "#fffacc",  # Amarillo suave
-            "descripcion": note.get("descripcion", note.get("content", ""))
-        })
-
-    # Documentos
-    for doc in locals().get('documents', []):
-        fecha_subida = doc.get("fecha_subida", None)
-        if fecha_subida:
-            start = fecha_subida.isoformat() if hasattr(fecha_subida, 'isoformat') else str(fecha_subida)
-            calendar_events.append({
-                "title": doc.get("titulo", doc.get("title", doc.get("ruta_archivo", "Documento"))),
-                "start": start,
-                "color": "#e6f7ff",  # Azul claro
-                "descripcion": "Documento subido"
-            })
-    
-    
-        result = mongo.db.eventos.insert_one(evento)
-        return jsonify({"success": True, "id": str(result.inserted_id)})
-
-    
 @main.route('/eventos')
 def get_eventos():
     eventos = list(mongo.db.eventos.find({}))

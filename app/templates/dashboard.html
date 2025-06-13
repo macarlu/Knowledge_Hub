@@ -1,5 +1,158 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    /* Estilos personalizados para el calendario */
+    .fc-event {
+        background-color: #3b82f6 !important;
+        border: 1px solid #2563eb !important;
+        color: white !important;
+        font-weight: 500 !important;
+        border-radius: 6px !important;
+        padding: 2px 4px !important;
+        font-size: 12px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .fc-event:hover {
+        background-color: #2563eb !important;
+        transform: scale(1.02) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Colorear las celdas con eventos */
+    .fc-daygrid-day.has-events {
+        background-color: #eff6ff !important;
+        border: 1px solid #dbeafe !important;
+    }
+
+    .fc-daygrid-day.has-events.fc-day-today {
+        background-color: #fef3c7 !important;
+        border: 1px solid #fbbf24 !important;
+    }
+
+    /* Tooltip personalizado */
+    .custom-tooltip {
+        position: absolute;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        max-width: 300px;
+        line-height: 1.4;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .custom-tooltip::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid #667eea;
+    }
+
+    .custom-tooltip .tooltip-title {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 4px;
+        color: #fbbf24;
+    }
+
+    .custom-tooltip .tooltip-time {
+        font-size: 12px;
+        color: #e5e7eb;
+        margin-bottom: 6px;
+    }
+
+    .custom-tooltip .tooltip-description {
+        font-size: 13px;
+        color: #f3f4f6;
+    }
+
+    /* Mejorar la apariencia general del calendario */
+    .fc-toolbar-title {
+        font-size: 1.5rem !important;
+        font-weight: bold !important;
+        color: #374151 !important;
+    }
+
+    .fc-button-primary {
+        background-color: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+    }
+
+    .fc-button-primary:hover {
+        background-color: #2563eb !important;
+        border-color: #2563eb !important;
+    }
+
+    .fc-daygrid-day-number {
+        color: #374151 !important;
+        font-weight: 500 !important;
+    }
+
+    .fc-day-today .fc-daygrid-day-number {
+        background-color: #3b82f6 !important;
+        color: white !important;
+        border-radius: 50% !important;
+        width: 28px !important;
+        height: 28px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Mejorar el formulario */
+    .form-input {
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-button {
+        background-color: #3b82f6;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    .form-button:hover {
+        background-color: #2563eb;
+    }
+
+    .form-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .dia-con-evento {
+        background-color: #ffe4e6 !important; /* Color pastel rosa, cámbialo a tu gusto */
+    }
+</style>
+
 <main class="bg-gray-100 font-sans">
     <div class="p-6 max-w-7xl mx-auto">
         <h1 class="text-3xl font-bold mb-4">📊 Dashboard</h1>
@@ -7,12 +160,12 @@
         <!-- Formulario para añadir evento -->
         <div class="bg-white p-4 rounded-2xl shadow mb-4">
             <h2 class="text-xl font-semibold mb-2">➕ Añadir Evento al Calendario</h2>
-            <form method="POST" action="{{ url_for('main.add_evento') }}">
-              <input type="text" name="titulo" placeholder="Título del evento" required>
-              <input type="date" name="fecha" required>
-              <input type="time" name="hora" required>
-              <input type="text" name="descripcion" placeholder="Descripción">
-              <button type="submit">Guardar</button>
+            <form method="POST" action="{{ url_for('main.add_evento') }}" class="form-container">
+                <input type="text" name="titulo" placeholder="Título del evento" required class="form-input">
+                <input type="date" name="fecha" required class="form-input">
+                <input type="time" name="hora" required class="form-input">
+                <input type="text" name="descripcion" placeholder="Descripción" class="form-input">
+                <button type="submit" class="form-button">Guardar</button>
             </form>
         </div>
 
@@ -69,12 +222,144 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
+            
+            // Mantener los eventos del backend
+            var events = {{ calendar_events|safe }};
+            
+            // Suponiendo que calendar_events es un array de objetos con campo 'start' en formato ISO
+            const eventDates = new Set(
+              events.map(ev => {
+                // Si ev.start es string, conviértelo a Date
+                let d = typeof ev.start === 'string' ? new Date(ev.start) : ev.start;
+                // Ajusta a formato YYYY-MM-DD
+                return d.toISOString().slice(0, 10);
+              })
+            );
+
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'es',
-                events: {{ calendar_events|safe }}
+                events: events,
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                
+                // Función que se ejecuta después de renderizar los eventos
+                eventDidMount: function(info) {
+                    tippy(info.el, {
+                        content: info.event.extendedProps.description || info.event.title,
+                        placement: 'bottom', // <-- Esto lo pone debajo de la celda
+                        animation: 'scale',
+                        arrow: true,
+                        theme: 'light-border',
+                        offset: [0, 5], // Ajusta la distancia vertical si lo deseas
+                    });
+                },
+
+                // Hover para mostrar tooltip
+                eventMouseEnter: function(info) {
+                    var tooltip = createTooltip(info.event);
+                    document.body.appendChild(tooltip);
+                    
+                    var rect = info.el.getBoundingClientRect();
+                    tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+                    tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+                    
+                    // Ajustar posición si se sale de la pantalla
+                    if (parseInt(tooltip.style.top) < 0) {
+                        tooltip.style.top = (rect.bottom + 10) + 'px';
+                    }
+                    
+                    // Asegurar que no se salga por los lados
+                    var tooltipRect = tooltip.getBoundingClientRect();
+                    if (tooltipRect.left < 0) {
+                        tooltip.style.left = '10px';
+                    } else if (tooltipRect.right > window.innerWidth) {
+                        tooltip.style.left = (window.innerWidth - tooltipRect.width - 10) + 'px';
+                    }
+                    
+                    info.el.tooltipElement = tooltip;
+                },
+
+                // Quitar tooltip al salir del hover
+                eventMouseLeave: function(info) {
+                    if (info.el.tooltipElement) {
+                        document.body.removeChild(info.el.tooltipElement);
+                        info.el.tooltipElement = null;
+                    }
+                },
+
+                // Click en evento para más opciones
+                eventClick: function(info) {
+                    var eventDate = info.event.start ? info.event.start.toLocaleDateString('es-ES') : 'Fecha no disponible';
+                    var eventTime = '';
+                    
+                    // Obtener la hora del evento
+                    if (info.event.start) {
+                        eventTime = info.event.start.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                    } else if (info.event.extendedProps && info.event.extendedProps.time) {
+                        eventTime = info.event.extendedProps.time;
+                    }
+                    
+                    var description = info.event.extendedProps && info.event.extendedProps.description ? 
+                                    info.event.extendedProps.description : 'Sin descripción';
+                    
+                    alert('📅 ' + info.event.title + 
+                          '\n🗓️ Fecha: ' + eventDate + 
+                          (eventTime ? '\n🕐 Hora: ' + eventTime : '') +
+                          '\n📝 Descripción: ' + description);
+                },
+
+                dayCellDidMount: function(info) {
+                    const cellDate = info.date.toISOString().slice(0, 10);
+                    if (eventDates.has(cellDate)) {
+                      info.el.classList.add('dia-con-evento');
+                    }
+                },
             });
+
             calendar.render();
+
+            // Función para crear el tooltip
+            function createTooltip(event) {
+                var tooltip = document.createElement('div');
+                tooltip.className = 'custom-tooltip';
+                
+                var title = event.title || 'Sin título';
+                var date = event.start ? event.start.toLocaleDateString('es-ES') : '';
+                var time = '';
+                
+                // Obtener la hora del evento
+                if (event.start) {
+                    time = event.start.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+                } else if (event.extendedProps && event.extendedProps.time) {
+                    time = event.extendedProps.time;
+                }
+                
+                var description = event.extendedProps && event.extendedProps.description ? 
+                                event.extendedProps.description : '';
+                
+                tooltip.innerHTML = `
+                    <div class="tooltip-title">${title}</div>
+                    <div class="tooltip-time">📅 ${date} ${time ? '🕐 ' + time : ''}</div>
+                    ${description ? `<div class="tooltip-description">📝 ${description}</div>` : ''}
+                `;
+                
+                return tooltip;
+            }
+
+            // Limpiar tooltips al hacer scroll para evitar que se queden colgando
+            window.addEventListener('scroll', function() {
+                var tooltips = document.querySelectorAll('.custom-tooltip');
+                tooltips.forEach(function(tooltip) {
+                    if (tooltip.parentNode) {
+                        tooltip.parentNode.removeChild(tooltip);
+                    }
+                });
+            });
         });
     </script>
 </main>
