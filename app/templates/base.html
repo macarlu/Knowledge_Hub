@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KnowledgeHub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Añadir Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- CSS personalizado -->
+    <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
     <!-- FullCalendar CSS -->
     <!-- <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet"> -->
      
@@ -19,7 +23,7 @@
             </a>
             
             <!-- Barra de búsqueda -->
-            <form class="d-flex ms-auto" action="{{ url_for('main.search') }}" method="GET">
+            <form class="d-flex" action="{{ url_for('main.search') }}" method="GET">
                 <div class="input-group">
                     <input type="text" class="form-control" name="q" placeholder="Buscar recursos..." 
                            value="{{ request.args.get('q', '') }}">
@@ -29,13 +33,32 @@
                 </div>
             </form>
             
-            <ul class="navbar-nav ms-3">
+            <!-- Botón Nuevo Recurso -->
+            <div class="d-flex align-items-center ms-2">
+                <a class="btn btn-success" href="{{ url_for('main.add_resource_form') }}">
+                    <i class="fas fa-plus me-1"></i> Nuevo Recurso
+                </a>
+            </div>
+            
+            <!-- Bloque de usuario y logout -->
+            <div class="d-flex align-items-center ms-3">
+                {% if current_user.is_authenticated %}
+                <div class="nav-item me-2">
+                    <span class="text-light">{{ current_user.name }}</span>
+                </div>
                 <li class="nav-item">
-                    <a class="btn btn-success" href="{{ url_for('main.add_resource_form') }}">
-                        <i class="fas fa-plus me-1"></i> Nuevo Recurso
+                    <a class="btn btn-outline-light" href="{{ url_for('main.logout') }}">
+                        <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
                     </a>
                 </li>
-            </ul>
+                {% else %}
+                <li class="nav-item">
+                    <a class="btn btn-outline-light" href="{{ url_for('main.login') }}">
+                        <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                    </a>
+                </li>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
@@ -53,9 +76,80 @@
 
         {% block content %}{% endblock %}
     </div>
-    <!-- FullCalendar JS -->
+    <!-- Scripts -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/locales/es.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css"/>
+    
+    <!-- Script para el accordion -->
+    <script>
+        // Verificar que Bootstrap esté cargado
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap no está cargado');
+        } else {
+            // Inicializar todos los accordions cuando se cargue el DOM
+            document.addEventListener('DOMContentLoaded', function() {
+                // Inicializar todos los accordions usando Bootstrap
+                var accordions = document.querySelectorAll('.accordion');
+                accordions.forEach(function(accordion) {
+                    var buttons = accordion.querySelectorAll('[data-bs-toggle="collapse"]');
+                    buttons.forEach(function(button) {
+                        // Crear una nueva instancia de Collapse
+                        var target = button.getAttribute('data-bs-target');
+                        if (target) {
+                            var collapse = new bootstrap.Collapse(target, {
+                                toggle: false
+                            });
+                            
+                            // Añadir evento click
+                            button.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                collapse.toggle();
+                            });
+                        }
+                    });
+                });
+            });
+        }
+    </script>
+    
+    <!-- Inicializar FullCalendar -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            if (calendarEl) {
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'es',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: function(info, successCallback, failureCallback) {
+                        fetch('/api/v1/calendar/events')
+                            .then(response => response.json())
+                            .then(events => {
+                                successCallback(events);
+                            })
+                            .catch(error => {
+                                failureCallback(error);
+                            });
+                    },
+                    eventClick: function(info) {
+                        tippy(info.el, {
+                            content: info.event.title + '<br>' + info.event.start.toLocaleString('es-ES'),
+                            allowHTML: true
+                        });
+                    }
+                });
+                calendar.render();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-2xl shadow mt-6">
+    <h2 class="text-2xl font-bold mb-4">{{ documento.titulo or documento.ruta_archivo }}</h2>
+    
+    <!-- Controles -->
+    <div class="flex justify-end gap-4 mb-4">
+        <a href="{{ url_for('main.uploaded_file', filename=ruta_archivo) }}" class="form-button bg-green-600">⬇️ Descargar</a>
+        <a href="{{ url_for('main.eliminar_documento', doc_id=documento._id) }}" class="form-button bg-red-600">🗑️ Eliminar</a>
+        <a href="{{ url_for('main.dashboard') }}" class="form-button bg-gray-400">⬅️ Volver</a>
+    </div>
+
+    <!-- Visor PDF -->
+    <div class="aspect-video border rounded-xl overflow-hidden">
+        <iframe src="{{ url_for('main.uploaded_file', filename=ruta_archivo) }}" width="100%" height="600px" type="application/pdf"></iframe>
+    </div>
+</div>
+{% endblock %}

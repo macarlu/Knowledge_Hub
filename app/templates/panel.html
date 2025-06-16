@@ -87,31 +87,35 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let calendarEl = document.getElementById('calendar');
+document.addEventListener('DOMContentLoaded', function () {
+    let calendarEl = document.getElementById('calendar');
 
-        // Inicializar pero NO renderizar aún
-        let calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'es',
-            events: [
-                {
-                    title: 'Reunión',
-                    start: '2025-06-17T09:30:00'
-                },
-                {
-                    title: 'Reunión',
-                    start: '2025-06-20T10:15:00'
-                }
-            ]
-        });
+    if (!calendarEl) {
+        console.error("❌ No se encontró el elemento con id 'calendar'.");
+        return;
+    }
 
-        // Renderizar solo cuando el contenedor esté visible
-        let calendarioCollapse = document.getElementById('collapseCalendario');
-        calendarioCollapse.addEventListener('shown.bs.collapse', function () {
-            calendar.render();
-        });
+    let calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        timeZone: 'local',
+        events: '/eventos',  // Usar endpoint dinámico
+        eventDidMount: function(info) {
+            const eventDate = info.event.start;
+            const dateStr = eventDate.toISOString().split('T')[0];
+            const dayEl = calendarEl.querySelector(`.fc-day[data-date="${dateStr}"]`);
+            
+            if (dayEl) {
+                dayEl.classList.add('dia-con-evento');
+            }
+        }
     });
+
+    let calendarioCollapse = document.getElementById('collapseCalendario');
+    calendarioCollapse.addEventListener('shown.bs.collapse', function () {
+        calendar.render();
+    });
+});
 </script>
 </body>
 </html>

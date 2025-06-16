@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4"><i class="fas fa-book me-2"></i>{{ title }}</h1>
+            <p class="text-muted">Autor: {{ author }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3>{{ title }}</h3>
+                        <p class="text-muted mb-0">Por {{ author }}</p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="scrollToTop()">
+                            <i class="fas fa-arrow-up"></i> Inicio
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="scrollToBottom()">
+                            <i class="fas fa-arrow-down"></i> Final
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% for chapter in chapters %}
+                        <div class="chapter mb-5">
+                            <h4 class="chapter-title border-bottom pb-2 mb-3">
+                                {{ chapter.title }}
+                            </h4>
+                            <div class="chapter-content">
+                                {{ chapter.content|safe }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function scrollToTop() {
+    document.documentElement.scrollTop = 0;
+}
+
+function scrollToBottom() {
+    window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+    });
+}
+</script>
+{% endblock %}

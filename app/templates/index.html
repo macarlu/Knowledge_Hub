@@ -1,57 +1,295 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="mb-4">Archivador de Recursos por Etiquetas</h2>
-<div class="accordion" id="archivadorRecursos">
-    {% set etiquetas = [] %}
-    {% for recurso in recursos %}
-        {% for etiqueta in recurso.etiquetas %}
-            {% if etiqueta not in etiquetas %}
-                {% set _ = etiquetas.append(etiqueta) %}
-            {% endif %}
-        {% endfor %}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-4"><i class="fas fa-chart-line me-2"></i>📊 Dashboard</h1>
+    </div>
+  </div>
+
+  <!-- Tarjetas de estadísticas -->
+  <div class="row mb-4">
+    {% for key, value in stats.items() %}
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><i class="fas fa-{{ 'calendar' if key == 'eventos' else 'file' if key == 'documentos' else 'link' if key == 'enlaces' else 'sticky-note' }} me-2"></i>{{ key|capitalize }}</h5>
+          <p class="card-text display-4">{{ value }}</p>
+        </div>
+      </div>
+    </div>
     {% endfor %}
-    {% for etiqueta in etiquetas %}
-    <div class="accordion-item">
-        <h2 class="accordion-header" id="heading-{{ loop.index }}">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ loop.index }}" aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
+  </div>
+
+  <!-- Fila 1 - Formulario de eventos -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="fas fa-calendar-plus me-2"></i>➕ Añadir Evento</h5>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('main.add_evento') }}" class="form-container">
+            <input type="hidden" name="user_id" value="{{ user_id }}">
+            <div class="d-flex justify-content-between align-items-center w-100">
+              <div class="flex-grow-1 me-2">
+                <label for="titulo" class="form-label mb-1">Título</label>
+                <input type="text" class="form-control" id="titulo" name="titulo" required />
+              </div>
+              <div class="flex-shrink-0 me-2">
+                <label for="fecha_hora" class="form-label mb-1">Fecha y hora</label>
+                <input type="datetime-local" class="form-control" id="fecha_hora" name="fecha_hora" required />
+              </div>
+              <div class="flex-grow-1 me-2">
+                <label for="descripcion" class="form-label mb-1">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="1"></textarea>
+              </div>
+              <div class="flex-shrink-0">
+                <button type="submit" class="btn btn-primary">Añadir</button>
+              </div>
+            </div>
+            </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila 2 - Calendario y Notas -->
+  <div class="row mb-4">
+    <!-- Calendario -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="fas fa-calendar me-2"></i>📅 Calendario</h5>
+        </div>
+        <div class="card-body">
+          <div id="calendar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notas -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="fas fa-sticky-note me-2"></i>🗒️ Notas Rápidas</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for note in notes %}
+            <li class="list-group-item p-3 bg-yellow-100 rounded-xl">
+              <strong>{{ note.titulo }}</strong><br />
+              <small class="text-muted">
+                {{ note.fecha_creacion.strftime('%Y-%m-%d %H:%M') if note.fecha_creacion else '' }}
+              </small><br />
+              {{ note.descripcion or note.contenido }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila 3 - Documentos y Enlaces -->
+  <div class="row mb-4">
+    <!-- Documentos -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="fas fa-file-alt me-2"></i>📄 Documentos</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for doc in documents %}
+            <li class="list-group-item">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="flex-grow-1">
+                  <a href="{{ url_for('main.uploaded_file', filename=doc.ruta_archivo) }}" target="_blank" class="text-decoration-none">
+                    <strong>{{ doc.titulo or doc.ruta_archivo }}</strong>
+                    <small class="text-muted">{{ doc.fecha_subida.strftime('%d/%m/%Y') }}</small>
+                  </a>
+                  {% if doc.ruta_archivo.lower().endswith('.epub') %}
+                    <a href="{{ url_for('epub.ver_epub', filename=doc.ruta_archivo) }}" class="btn btn-sm btn-primary ms-2">
+                      <i class="fas fa-eye"></i> Ver en línea
+                    </a>
+                  {% endif %}
+                </div>
+                <div class="flex-shrink-0">
+                  <i class="fas fa-download"></i>
+                </div>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enlaces -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="fas fa-link me-2"></i>🔗 Enlaces Útiles</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for link in links %}
+            <li class="list-group-item">
+              <a href="{{ link.url }}" target="_blank" class="text-decoration-none">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ link.titulo or link.url }}</strong>
+                    <small class="text-muted">{{ link.fecha_creacion.strftime('%d/%m/%Y') }}</small>
+                  </div>
+                  <i class="fas fa-external-link-alt"></i>
+                </div>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archivador de Recursos por Etiquetas -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="card-title mb-0"><i class="fas fa-folder me-2"></i>📂 Archivador de Recursos por Etiquetas</h5>
+    </div>
+    <div class="card-body">
+      <div class="accordion" id="archivadorRecursos">
+        {% set etiquetas = [] %}
+        {% for recurso in recursos %}
+          {% for etiqueta in recurso.tags %}
+            {% if etiqueta not in etiquetas %}
+              {% set _ = etiquetas.append(etiqueta) %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+        
+        {% if etiquetas %}
+          {% for etiqueta in etiquetas %}
+          <div class="card mb-2">
+            <div class="card-header">
+              <button class="btn btn-link text-start w-100 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ etiqueta|lower|replace(' ', '-') }}">
                 <span class="badge bg-secondary me-2">{{ etiqueta }}</span> Recursos con esta etiqueta
-            </button>
-        </h2>
-        <div id="collapse-{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#archivadorRecursos">
-            <div class="accordion-body">
-                {% set recursos_etiqueta = recursos | selectattr('etiquetas', 'contains', etiqueta) | list %}
+              </button>
+            </div>
+            <div id="collapse-{{ etiqueta|lower|replace(' ', '-') }}" class="collapse">
+              <div class="card-body">
+                {% set recursos_etiqueta = [] %}
+                {% for recurso in recursos %}
+                  {% if etiqueta in recurso.tags %}
+                    {% set _ = recursos_etiqueta.append(recurso) %}
+                  {% endif %}
+                {% endfor %}
+                
+                {% if recursos_etiqueta %}
+                <div class="list-group">
+                  {% for recurso in recursos_etiqueta %}
+                  <div class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                      <div class="fw-bold">{{ recurso.titulo }}</div>
+                      <small class="text-muted">{{ recurso.tipo|capitalize }} | Creado: {{ recurso.fecha_creacion.strftime('%d/%m/%Y') }}</small>
+                      <p class="mb-1">{{ recurso.descripcion|truncate(80) }}</p>
+                      {% if recurso.tipo == 'documento' and recurso.ruta_archivo %}
+                      <a href="{{ url_for('main.uploaded_file', filename=recurso.ruta_archivo) }}" class="btn btn-sm btn-outline-secondary ms-2" target="_blank">
+                        <i class="fas fa-download"></i> Descargar
+                      </a>
+                      {% endif %}
+                    </div>
+                    <div class="btn-group">
+                      <a href="{{ url_for('main.edit_resource', resource_id=recurso._id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                      <form method="POST" action="{{ url_for('main.delete_resource', resource_id=recurso._id) }}" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este recurso?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger ms-1"><i class="fas fa-trash"></i></button>
+                      </form>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info mt-2">No hay recursos en esta etiqueta.</div>
+                {% endif %}
+                {% set recursos_etiqueta = [] %}
+                {% for recurso in recursos %}
+                  {% if etiqueta in recurso.tags %}
+                    {% set _ = recursos_etiqueta.append(recurso) %}
+                  {% endif %}
+                {% endfor %}
                 {% if recursos_etiqueta %}
                 <ul class="list-group">
-                    {% for recurso in recursos_etiqueta %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ recurso.titulo }}</strong>
-                            <br>
-                            <small class="text-muted">{{ recurso.tipo|capitalize }} | Creado: {{ recurso.fecha_creacion.strftime('%d/%m/%Y') }}</small>
-                            <br>
-                            {{ recurso.descripcion|truncate(80) }}
-                            {% if recurso.tipo == 'documento' and recurso.ruta_archivo %}
-                                <a href="{{ url_for('main.uploaded_file', filename=recurso.ruta_archivo) }}" class="btn btn-sm btn-outline-secondary ms-2" target="_blank">
-                                    <i class="fas fa-download"></i> Descargar
-                                </a>
-                            {% endif %}
-                        </div>
-                        <div class="btn-group">
-                            <a href="{{ url_for('main.edit_resource', resource_id=recurso._id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
-                            <form method="POST" action="{{ url_for('main.delete_resource', resource_id=recurso._id) }}" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este recurso?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger ms-1"><i class="fas fa-trash"></i></button>
-                            </form>
-                        </div>
-                    </li>
-                    {% endfor %}
+                  {% for recurso in recursos_etiqueta %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ recurso.titulo }}</strong><br />
+                      <small class="text-muted">{{ recurso.tipo|capitalize }} | Creado: {{ recurso.fecha_creacion.strftime('%d/%m/%Y') }}</small><br />
+                      {{ recurso.descripcion|truncate(80) }}
+                      {% if recurso.tipo == 'documento' and recurso.ruta_archivo %}
+                      <a href="{{ url_for('main.uploaded_file', filename=recurso.ruta_archivo) }}" class="btn btn-sm btn-outline-secondary ms-2" target="_blank">
+                        <i class="fas fa-download"></i> Descargar
+                      </a>
+                      {% endif %}
+                    </div>
+                    <div class="btn-group">
+                      <a href="{{ url_for('main.edit_resource', resource_id=recurso._id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                      <form method="POST" action="{{ url_for('main.delete_resource', resource_id=recurso._id) }}" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este recurso?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger ms-1"><i class="fas fa-trash"></i></button>
+                      </form>
+                    </div>
+                  </li>
+                  {% endfor %}
                 </ul>
                 {% else %}
                 <div class="alert alert-info mt-2">No hay recursos en esta etiqueta.</div>
                 {% endif %}
+              </div>
             </div>
-        </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="alert alert-info">No hay etiquetas asignadas a los recursos.</div>
+        {% endif %}
+      </div>
     </div>
-    {% endfor %}
-</div>
-{% endblock %}
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar que los recursos se están pasando correctamente
+        var recursos = {{ recursos|tojson }};
+        console.log('Recursos:', recursos);
+        
+        // Verificar que los botones de accordion funcionan
+        var buttons = document.querySelectorAll('[data-bs-toggle="collapse"]');
+        buttons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                console.log('Botón clickeado:', this);
+                
+                // Obtener el ID del target
+                var targetId = this.getAttribute('data-bs-target');
+                console.log('Target ID:', targetId);
+                
+                // Obtener el elemento target
+                var target = document.querySelector(targetId);
+                console.log('Target:', target);
+                
+                if (target) {
+                    // Asegurar que solo un elemento está abierto
+                    var allCollapses = document.querySelectorAll('.collapse.show');
+                    allCollapses.forEach(function(collapse) {
+                        collapse.classList.remove('show');
+                    });
+                    
+                    // Abrir el nuevo elemento
+                    target.classList.add('show');
+                }
+            });
+        });
+    });
+  </script>
+  {% endblock %}

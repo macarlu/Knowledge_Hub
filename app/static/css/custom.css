@@ -1,0 +1,231 @@
+/* Estilos personalizados para KnowledgeHub */
+
+/* Estilos generales */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Cards */
+.card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 1rem 1.25rem;
+}
+
+.card-header h5 {
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Formularios */
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-container .row {
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.form-container .col-md-4,
+.form-container .col-md-3,
+.form-container .col-md-1 {
+    padding: 0.5rem;
+}
+
+.form-container .form-label {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.form-container .form-control {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.form-container .btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    height: 100%;
+}
+
+/* Botones */
+.btn-primary {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+/* Estadísticas */
+.display-4 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #374151;
+}
+
+/* Notas */
+.bg-yellow-100 {
+    background-color: #fff9db;
+    border-radius: 0.75rem;
+}
+
+/* Enlaces */
+.text-decoration-none {
+    color: inherit;
+    text-decoration: none;
+}
+
+.text-decoration-none:hover {
+    color: #1e293b;
+}
+
+/* Accordion */
+.accordion-button {
+    background-color: #f8f9fa;
+    color: #374151;
+    padding: 1rem 1.25rem;
+    font-weight: 500;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #e2e8f0;
+    color: #1e293b;
+}
+
+.accordion-body {
+    padding: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Listas */
+.list-group-item {
+    border: none;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Botones de acción */
+.btn-group .btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* Mensajes flash */
+.alert {
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background-color: #dcfce7;
+    color: #059669;
+    border-color: #bbf7d0;
+}
+
+.alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+/* Iconos */
+.fas {
+    font-size: 1.1rem;
+}
+
+/* FullCalendar */
+.fc-daygrid-day {
+    border: 1px solid #e2e8f0;
+}
+
+.fc-day-today {
+    background-color: #e7f5ff;
+}
+
+.fc-event {
+    background-color: #ffd43b;
+    border-color: #fab005;
+    color: #343a40;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    margin: 3px 0;
+    transition: all 0.2s ease;
+}
+
+.fc-event:hover {
+    background-color: #fab005;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Formulario de eventos */
+.form-container {
+    background-color: #fff;
+}
+
+.card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e2e8f0;
+    padding: 1.5rem;
+}
+
+.card-footer .form-container {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.card-footer button {
+    margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .form-container {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-container .col-md-4,
+    .form-container .col-md-3,
+    .form-container .col-md-1 {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .form-container .row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .form-container .col-md-4,
+    .form-container .col-md-3,
+    .form-container .col-md-1 {
+        width: 100%;
+    }
+}

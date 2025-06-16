@@ -1,28 +1,27 @@
 {% extends "base.html" %}
-{% block content %}
-<main class="bg-gray-100 font-sans">
-    <div class="p-6 max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold mb-4">📊 Dashboard</h1>
 
-        <!-- Formulario para añadir evento -->
-        <div class="bg-white p-4 rounded-2xl shadow mb-4">
-            <h2 class="text-xl font-semibold mb-2">➕ Añadir Evento al Calendario</h2>
-            <form method="POST" action="{{ url_for('main.add_evento') }}">
-              <input type="text" name="titulo" placeholder="Título del evento" required>
-              <input type="date" name="fecha" required>
-              <input type="time" name="hora" required>
-              <input type="text" name="descripcion" placeholder="Descripción">
-              <button type="submit">Guardar</button>
-            </form>
+{% block content %}
+<main class="bg-gray-100 font-sans min-h-screen">
+    <div class="p-4 max-w-7xl mx-auto">
+        <!-- Encabezado de la aplicación -->
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-4">
+                <img src="/static/logo.png" alt="KnowledgeHub Logo" class="h-10 w-10">
+                <h1 class="text-3xl font-bold">KnowledgeHub</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <input type="text" placeholder="Buscar recursos..." class="form-input">
+                <a href="{{ url_for('main.add_resource_form') }}" class="form-button">➕ Añadir Recurso</a>
+            </div>
         </div>
 
-        <!-- Panel de 4 columnas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <!-- Sección de paneles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             <!-- Calendario -->
             <div class="bg-white p-4 rounded-2xl shadow">
                 <h2 class="text-xl font-semibold mb-2">📅 Calendario</h2>
-                <div id='calendar'></div>
+                <div id="calendar"></div>
             </div>
 
             <!-- Notas Rápidas -->
@@ -42,12 +41,20 @@
             <!-- Documentos Importantes -->
             <div class="bg-white p-4 rounded-2xl shadow">
                 <h2 class="text-xl font-semibold mb-2">📁 Documentos Importantes</h2>
-                <ul class="list-disc ml-4">
+                <ul class="space-y-3">
                     {% for doc in documents %}
-                        <li>
-                            <a href="{{ url_for('main.uploaded_file', filename=doc.ruta_archivo) }}" class="text-blue-600 underline" target="_blank">
-                                {{ doc.titulo or doc.ruta_archivo }}
-                            </a>
+                        <li class="flex items-center justify-between bg-gray-100 p-3 rounded-xl">
+                            <div>
+                                <strong>{{ doc.titulo or doc.ruta_archivo }}</strong><br>
+                                <small>{{ doc.fecha_subida.strftime('%Y-%m-%d %H:%M') if doc.fecha_subida else '' }}</small>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="{{ url_for('main.ver_documento', doc_id=doc._id) }}" class="text-blue-600">👁️ Ver</a>
+                                <a href="{{ url_for('main.uploaded_file', filename=doc.ruta_archivo) }}" class="text-green-600">⬇️ Descargar</a>
+                                <form method="POST" action="{{ url_for('main.delete_resource', resource_id=doc._id) }}" style="display:inline;">
+                                    <button type="submit" class="text-red-600 btn btn-link p-0 m-0 align-baseline">🗑️ Eliminar</button>
+                                </form>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
@@ -65,17 +72,23 @@
 
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'es',
-                events: {{ calendar_events|safe }}
-            });
-            calendar.render();
-        });
-    </script>
 </main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl && window.FullCalendar) {
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        events: {{ calendar_events|safe }}
+      });
+      calendar.render();
+    } else {
+      console.error("FullCalendar no está cargado o el div #calendar no existe.");
+    }
+  });
+</script>
 {% endblock %}
