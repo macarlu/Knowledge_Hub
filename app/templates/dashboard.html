@@ -21,9 +21,7 @@
             <!-- Calendario -->
             <div class="bg-white p-4 rounded-2xl shadow">
                 <h2 class="text-xl font-semibold mb-2">📅 Calendario</h2>
-                <div id="calendar" class="min-h-[400px]">
-                    <!-- El calendario se renderizará aquí -->
-                </div>
+                <div id="calendar"></div>
             </div>
 
             <!-- Notas Rápidas -->
@@ -79,35 +77,18 @@
 
 {% block scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      locale: 'es',
-      events: function(info, successCallback, failureCallback) {
-        fetch('/api/v1/calendar/events')
-          .then(response => response.json())
-          .then(data => successCallback(data))
-          .catch(error => failureCallback(error));
-      },
-      eventDidMount: function(info) {
-        info.el.style.borderRadius = '8px';
-        info.el.style.padding = '8px';
-        info.el.style.backgroundColor = '#ffffff';
-        info.el.style.color = '#000000';
-        info.el.style.border = '1px solid #ddd';
-      },
-      eventClick: function(info) {
-        info.event.setProp('backgroundColor', '#f0f0f0');
-        setTimeout(() => {
-          info.event.setProp('backgroundColor', '#ffffff');
-        }, 200);
-        return false;
-      }
-    });
-    calendar.render();
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl && window.FullCalendar) {
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        events: {{ calendar_events|safe }}
+      });
+      calendar.render();
+    } else {
+      console.error("FullCalendar no está cargado o el div #calendar no existe.");
+    }
   });
 </script>
 {% endblock %}
